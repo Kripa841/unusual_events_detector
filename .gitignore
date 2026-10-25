@@ -1,0 +1,32 @@
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Incomplete / temporary files
+*.crdownload
+*.tmp
+*.temp
+
+# Large media files exceeding GitHub's 100MB limit
+MotionWatch/MPS Phone Theft - Media Cut - June 2026.mp4
+*.mp4.part
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini

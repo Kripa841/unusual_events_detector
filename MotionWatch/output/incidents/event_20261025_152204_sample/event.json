@@ -1,0 +1,15 @@
+{
+    "event_id": "TEST_20261025_152204_01",
+    "event_type": "MANUAL_TEST_ALERT",
+    "timestamp": "2026-10-25 15:22:04",
+    "video_source": "C:\\Users\\kripa\\Desktop\\ipcv_mini_project\\MotionWatch\\sample.mp4",
+    "detection_method": "User Manual Verification Test",
+    "confidence": 1.0,
+    "involved_track_ids": [],
+    "details": "Manual test alert triggered via user interface to verify alarm and evidence capture.",
+    "screenshots": [
+        "before.jpg",
+        "detected.jpg"
+    ],
+    "status": "SAVED"
+}

@@ -1,0 +1,20 @@
+{
+    "event_id": "THEFT_20261025_160258_02",
+    "event_type": "SUSPECTED_SNATCH_THEFT",
+    "timestamp": "2026-10-25 16:02:58",
+    "video_source": "Mynewsdesk.mp4",
+    "detection_method": "Temporal Kinematic + Motion Energy Interaction Analysis",
+    "confidence": 0.698,
+    "involved_track_ids": [
+        17,
+        11
+    ],
+    "details": "Close interaction (dist 101px) followed by rapid departure by ID 17 (speed: 16.7px/f, ratio: 1.07x).",
+    "screenshots": [
+        "before.jpg",
+        "detected.jpg",
+        "after_1s.jpg",
+        "after_3s.jpg"
+    ],
+    "status": "COMPLETED"
+}

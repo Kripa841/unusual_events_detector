@@ -1,0 +1,12 @@
+# MotionWatch - AI-Based CCTV Theft Detection & Alert System
+# Core Computer Vision & Deep Learning Stack
+opencv-python>=4.8.0
+ultralytics>=8.1.0
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+pillow>=10.0.0
+
+# Optional Audio and Performance Utilities
+# (Windows uses built-in winsound by default; pygame is an optional cross-platform fallback)
+pygame>=2.5.0

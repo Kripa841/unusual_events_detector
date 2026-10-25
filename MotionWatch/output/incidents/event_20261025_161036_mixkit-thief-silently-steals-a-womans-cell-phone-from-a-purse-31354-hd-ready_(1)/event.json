@@ -1,0 +1,20 @@
+{
+    "event_id": "THEFT_20261025_161036_01",
+    "event_type": "SUSPECTED_SNATCH_THEFT",
+    "timestamp": "2026-10-25 16:10:36",
+    "video_source": "C:/Users/kripa/Downloads/mixkit-thief-silently-steals-a-womans-cell-phone-from-a-purse-31354-hd-ready (1).mp4",
+    "detection_method": "Temporal Kinematic + Motion Energy Interaction Analysis",
+    "confidence": 0.859,
+    "involved_track_ids": [
+        6,
+        1
+    ],
+    "details": "Close interaction (dist 82px) followed by rapid departure by ID 6 (speed: 13.4px/f, ratio: 1.38x).",
+    "screenshots": [
+        "before.jpg",
+        "detected.jpg",
+        "after_1s.jpg",
+        "after_3s.jpg"
+    ],
+    "status": "COMPLETED"
+}

@@ -1,0 +1,19 @@
+{
+    "event_id": "TEST_20261025_160249_01",
+    "event_type": "MANUAL_TEST_ALERT",
+    "timestamp": "2026-10-25 16:02:49",
+    "video_source": "Mynewsdesk.mp4",
+    "detection_method": "User Manual Verification Test",
+    "confidence": 1.0,
+    "involved_track_ids": [
+        11
+    ],
+    "details": "Manual test alert triggered via user interface to verify alarm and evidence capture.",
+    "screenshots": [
+        "before.jpg",
+        "detected.jpg",
+        "after_1s.jpg",
+        "after_3s.jpg"
+    ],
+    "status": "COMPLETED"
+}
