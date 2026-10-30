@@ -1,4 +1,7 @@
+build-essential
+python3-dev
 ffmpeg
 libgl1
 libglib2.0-0
+
 

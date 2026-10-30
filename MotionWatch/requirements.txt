@@ -6,6 +6,8 @@ torch>=2.0.0
 torchvision>=0.15.0
 numpy>=1.24.0
 pillow>=10.0.0
+lapx>=0.5.5
+scipy>=1.10.0
 
 # Optional Audio and Performance Utilities
 # (Windows uses built-in winsound by default; pygame is an optional cross-platform fallback)

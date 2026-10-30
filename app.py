@@ -6,10 +6,47 @@ Built with Streamlit, YOLOv8, ByteTrack, and Spatial-Temporal Kinematic Analytic
 
 import os
 import sys
+import types
 import time
 import base64
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+
+# Ensure lap is available for ByteTrack linear assignment in headless/cloud environments
+try:
+    import lap
+    assert hasattr(lap, "lapjv")
+except Exception:
+    try:
+        import lapx as lap
+        sys.modules["lap"] = lap
+    except Exception:
+        # Fallback to SciPy linear sum assignment to guarantee zero ModuleNotFoundError
+        try:
+            from scipy.optimize import linear_sum_assignment
+            import numpy as _np
+
+            lap_shim = types.ModuleType("lap")
+            lap_shim.__version__ = "0.5.12"
+
+            def _lapjv(cost_matrix, extend_cost=True, cost_limit=1e6):
+                if cost_matrix.size == 0:
+                    return 0.0, _np.empty(0, dtype=int), _np.empty(0, dtype=int)
+                r_idx, c_idx = linear_sum_assignment(cost_matrix)
+                x = _np.full(cost_matrix.shape[0], -1, dtype=int)
+                y = _np.full(cost_matrix.shape[1], -1, dtype=int)
+                opt = 0.0
+                for r, c in zip(r_idx, c_idx):
+                    if cost_matrix[r, c] <= cost_limit:
+                        x[r] = c
+                        y[c] = r
+                        opt += cost_matrix[r, c]
+                return opt, x, y
+
+            lap_shim.lapjv = _lapjv
+            sys.modules["lap"] = lap_shim
+        except Exception:
+            pass
 
 import cv2
 import numpy as np
