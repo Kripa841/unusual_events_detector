@@ -61,6 +61,7 @@ class YOLODetector:
             tracker="bytetrack.yaml",
             classes=DETECT_CLASSES,
             conf=inference_conf,
+            imgsz=640,
             verbose=False
         )
 

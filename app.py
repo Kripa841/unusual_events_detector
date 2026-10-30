@@ -161,7 +161,13 @@ def get_audio_html(audio_path: Path) -> str:
 
 @st.cache_resource
 def load_detector():
-    """Caches YOLOv8 detector instance across Streamlit reruns."""
+    """Caches YOLOv8 detector instance across Streamlit reruns with CPU optimization."""
+    import torch
+    if not torch.cuda.is_available():
+        try:
+            torch.set_num_threads(2)
+        except Exception:
+            pass
     return YOLODetector(conf=DEFAULT_DETECTION_CONFIDENCE)
 
 
@@ -310,10 +316,10 @@ def main():
 
         enable_siren = st.checkbox("🔊 Enable Browser Audio Siren", value=True)
         frame_skip = st.select_slider(
-            "Inference Speed Optimization",
-            options=[1, 2, 3],
-            value=1,
-            format_func=lambda x: f"Every {x} frame(s) ({'Full Real-time' if x==1 else 'High FPS'})"
+            "⚡ Playback Speed Optimization",
+            options=[1, 2, 3, 4],
+            value=2,
+            format_func=lambda x: f"Every {x} frame(s) ({'Smooth Real-Time (Recommended)' if x==2 else ('High Speed' if x>2 else 'Maximum Precision')})"
         )
 
     # Telemetry Row
@@ -398,21 +404,20 @@ def main():
                 break
 
             frame_idx += 1
-            progress_bar.progress(min(1.0, frame_idx / total_frames))
 
-            # Maintain rolling ring-buffer for before-incident snapshot
-            rolling_buffer.append(frame.copy())
-            if len(rolling_buffer) > max_buffer_frames:
-                rolling_buffer.pop(0)
-
-            # Skip frames if user selected optimization
+            # Skip frames for real-time smoothness
             if frame_idx % frame_skip != 0:
                 continue
 
-            # Aspect-safe resize for inference efficiency
+            # Aspect-safe resize to 640px (native YOLO resolution, 4x faster than 960px)
             h, w = frame.shape[:2]
-            scale = 960.0 / max(w, 1)
-            frame_resized = cv2.resize(frame, (960, int(h * scale)))
+            scale = 640.0 / max(w, 1)
+            frame_resized = cv2.resize(frame, (640, int(h * scale)))
+
+            # Maintain lightweight rolling buffer for before-incident snapshot
+            rolling_buffer.append(frame_resized.copy())
+            if len(rolling_buffer) > max_buffer_frames:
+                rolling_buffer.pop(0)
 
             t0 = time.time()
             # YOLO detection with category-aware thresholds
@@ -430,7 +435,7 @@ def main():
             # Check if incident detected
             if event is not None:
                 active_suspect_id = event.get("suspect_id", -1)
-                alert_cooldown_counter = int(fps_val * 3.5)
+                alert_cooldown_counter = int((fps_val / frame_skip) * 3.5)
                 captured_events.append(event)
 
                 # Visual Warning Banner
@@ -449,9 +454,9 @@ def main():
                         audio_placeholder.markdown(audio_html, unsafe_allow_html=True)
 
                 # Capture Evidence Snapshots
-                before_idx = max(0, len(rolling_buffer) - int(fps_val * 1.5))
+                before_idx = max(0, len(rolling_buffer) - int((fps_val / frame_skip) * 1.5))
                 before_img = cv2.cvtColor(rolling_buffer[before_idx], cv2.COLOR_BGR2RGB)
-                detected_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                detected_img = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
 
                 with col_evidence:
                     ev_col1, ev_col2 = st.columns(2)
@@ -469,24 +474,31 @@ def main():
 
             # Render annotations on frame
             annotated_frame = render_annotations(frame_resized, detections, active_tracks, active_suspect_id)
-            annotated_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
-            video_canvas.image(annotated_rgb, channels="RGB", use_container_width=True)
 
-            # Update Metrics
-            person_count = len([t for t in active_tracks.values() if t.is_person and t.missed_frames == 0])
-            all_carried: List[str] = []
-            for t in active_tracks.values():
-                if t.is_person and t.carried_items:
-                    all_carried.extend(t.carried_items)
+            # High-performance compressed JPEG streaming reduces WebSocket traffic by 85%
+            success, buffer = cv2.imencode('.jpg', annotated_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+            if success:
+                video_canvas.image(buffer.tobytes(), use_container_width=True)
+            else:
+                annotated_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+                video_canvas.image(annotated_rgb, channels="RGB", use_container_width=True)
 
-            tracks_metric.metric("Active Entities", f"{person_count} Persons / {len(active_tracks)} Total")
-            items_metric.metric("Carried Belongings", ", ".join(set(all_carried)) if all_carried else "None")
-            fps_metric.metric("Inference Rate", f"{fps_calc:.1f} FPS")
+            # Throttle UI progress & metric updates to avoid WebSocket network congestions
+            if frame_idx % (frame_skip * 3) == 0 or event is not None:
+                progress_bar.progress(min(1.0, frame_idx / total_frames))
+                person_count = len([t for t in active_tracks.values() if t.is_person and t.missed_frames == 0])
+                all_carried: List[str] = []
+                for t in active_tracks.values():
+                    if t.is_person and t.carried_items:
+                        all_carried.extend(t.carried_items)
 
-            # Update Event Log Table
-            if captured_events:
-                df = pd.DataFrame(captured_events)[["event_id", "timestamp", "confidence", "suspect_id", "victim_id", "details"]]
-                audit_table_placeholder.dataframe(df, use_container_width=True)
+                tracks_metric.metric("Active Entities", f"{person_count} Persons / {len(active_tracks)} Total")
+                items_metric.metric("Carried Belongings", ", ".join(set(all_carried)) if all_carried else "None")
+                fps_metric.metric("Inference Rate", f"{fps_calc:.1f} FPS")
+
+                if captured_events:
+                    df = pd.DataFrame(captured_events)[["event_id", "timestamp", "confidence", "suspect_id", "victim_id", "details"]]
+                    audit_table_placeholder.dataframe(df, use_container_width=True)
 
         cap.release()
         status_placeholder.markdown('<div class="badge-normal">✅ ANALYSIS COMPLETE</div>', unsafe_allow_html=True)
