@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotionWatch AI — CCTV Theft Detection & Alert System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --card-bg: #111827;
+            --card-border: #1f2937;
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Top Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 48px;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-live {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-live::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+            margin-left: 20px;
+        }
+
+        .header-links a:hover {
+            color: #ffffff;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            max-width: 860px;
+            margin: 0 auto 64px auto;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .cta-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #1f2937;
+            transform: translateY(-2px);
+        }
+
+        /* Feature Cards */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 64px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 28px;
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: #374151;
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Tech Specs */
+        .specs-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 64px;
+        }
+
+        .specs-panel h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .spec-item {
+            border-left: 3px solid var(--accent-blue);
+            padding-left: 14px;
+        }
+
+        .spec-item .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .spec-item .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding-top: 32px;
+            border-top: 1px solid var(--card-border);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--text-muted);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-group">
+                <span class="badge-live">SYSTEM OPERATIONAL</span>
+                <span class="logo-text">MotionWatch AI</span>
+            </div>
+            <div class="header-links">
+                <a href="https://github.com/Kripa841/unusual_events_detector" target="_blank">GitHub Repository</a>
+                <a href="https://share.streamlit.io" target="_blank">Live Streamlit Cloud</a>
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero">
+            <h1>Autonomous CCTV Theft Detection & Alert Station</h1>
+            <p>
+                A high-reliability computer vision surveillance system that autonomously analyzes CCTV streams,
+                distinguishes genuine snatch-and-run theft interactions from ordinary ambient motion, triggers
+                immediate audio-visual sirens, and archives multi-stage forensic evidence.
+            </p>
+            <div class="cta-group">
+                <a href="https://github.com/Kripa841/unusual_events_detector" class="btn btn-primary" target="_blank">
+                    ⭐ View GitHub Project
+                </a>
+                <a href="https://github.com/Kripa841/unusual_events_detector/blob/main/README.md" class="btn btn-secondary" target="_blank">
+                    📖 Read Architecture Docs
+                </a>
+            </div>
+        </section>
+
+        <!-- Feature Grid -->
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">🎯</div>
+                <h3>Category-Aware Object Tracking</h3>
+                <p>
+                    Pairs YOLOv8 with ByteTrack for continuous multi-entity identification across Persons,
+                    Handbags, Backpacks, Suitcases, Cell Phones, and Getaway Vehicles with persistent carried item memory.
+                </p>
+            </div>
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h3>Spatial-Temporal Kinematics</h3>
+                <p>
+                    Replaces brittle zone alarms with multi-frame velocity derivatives: rapid convergence rate,
+                    proximity boundary interaction (&lt;180px), inter-body struggle energy, and escape sprint divergence.
+                </p>
+            </div>
+            <div class="card">
+                <div class="card-icon">🚨</div>
+                <h3>Automated Emergency Workflow</h3>
+                <p>
+                    Triggers immediate siren alarm loops, flashes warning alert interface, and autonomously captures
+                    4-stage evidence bundles (Before Incident, Trigger, +1s Escape, and +3s Getaway).
+                </p>
+            </div>
+        </div>
+
+        <!-- System Specifications -->
+        <div class="specs-panel">
+            <h2>Surveillance System Architecture</h2>
+            <div class="specs-grid">
+                <div class="spec-item">
+                    <div class="label">Detector Model</div>
+                    <div class="value">Ultralytics YOLOv8</div>
+                </div>
+                <div class="spec-item">
+                    <div class="label">Multi-Object Tracker</div>
+                    <div class="value">ByteTrack Filter</div>
+                </div>
+                <div class="spec-item">
+                    <div class="label">Belonging Classes</div>
+                    <div class="value">Bag, Suitcase, Phone</div>
+                </div>
+                <div class="spec-item">
+                    <div class="label">Kinematic Engine</div>
+                    <div class="value">Escape Ratio &gt;= 1.35x</div>
+                </div>
+                <div class="spec-item">
+                    <div class="label">Evidence Retention</div>
+                    <div class="value">4-Stage Rolling Buffer</div>
+                </div>
+                <div class="spec-item">
+                    <div class="label">Deploy Targets</div>
+                    <div class="value">Desktop / Streamlit / Edge</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>MotionWatch AI • Developed by Kripa • <a href="https://github.com/Kripa841/unusual_events_detector" target="_blank">GitHub: Kripa841/unusual_events_detector</a></p>
+        </footer>
+    </div>
+</body>
+</html>
