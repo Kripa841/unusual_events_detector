@@ -29,6 +29,7 @@ class TrackRecord:
         self.missed_frames = 0
         self.is_person = (class_id == 0)
         self.carried_items: List[str] = []
+        self.carried_item_memory: Dict[str, int] = {}
 
     def update(self, bbox: List[float], frame_idx: int, fps: float = 25.0):
         """Update track with new bounding box and compute kinematic derivatives."""
@@ -137,21 +138,57 @@ class KinematicTracker:
         return self.tracks
 
     def _associate_items_with_persons(self, detections: List[Dict[str, Any]]):
-        """Checks if items are inside or very close to a person's bounding box."""
+        """Checks if items are carried by a person, maintaining temporal stability without lag."""
         persons = [d for d in detections if d["is_person"] and d["track_id"] in self.tracks]
         items = [d for d in detections if d["is_item"]]
 
-        for p in persons:
-            p_track = self.tracks[p["track_id"]]
-            p_track.carried_items.clear()
-            px1, py1, px2, py2 = p["bbox"]
+        # Decay existing carried items memory for each active person track
+        for t in self.tracks.values():
+            if t.is_person:
+                to_delete = []
+                for item_name in t.carried_item_memory:
+                    t.carried_item_memory[item_name] -= 1
+                    if t.carried_item_memory[item_name] <= 0:
+                        to_delete.append(item_name)
+                for item_name in to_delete:
+                    del t.carried_item_memory[item_name]
 
-            for it in items:
-                ix1, iy1, ix2, iy2 = it["bbox"]
-                icx, icy = it["center"]
-                # If item center is inside person's expanded box
-                if (px1 - 20 <= icx <= px2 + 20) and (py1 - 20 <= icy <= py2 + 20):
-                    p_track.carried_items.append(it["class_name"])
+        # Associate currently detected items (handbag, backpack, suitcase, phone)
+        for it in items:
+            ix1, iy1, ix2, iy2 = it["bbox"]
+            icx, icy = it["center"]
+            item_name = it["class_name"]
+
+            best_p_track = None
+            best_dist = float("inf")
+
+            for p in persons:
+                px1, py1, px2, py2 = p["bbox"]
+                pcx, pcy = p["center"]
+
+                # Check proximity: suitcases/handbags often hang low near legs or slightly outside body
+                x_in = (px1 - 40 <= icx <= px2 + 40)
+                y_in = (py1 - 20 <= icy <= py2 + 40)
+
+                # Box overlap check
+                overlap_x = max(0, min(px2, ix2) - max(px1, ix1))
+                overlap_y = max(0, min(py2, iy2) - max(py1, iy1))
+                has_overlap = (overlap_x * overlap_y) > 0
+
+                if (x_in and y_in) or has_overlap:
+                    dist = math.hypot(icx - pcx, icy - pcy)
+                    if dist < best_dist:
+                        best_dist = dist
+                        best_p_track = self.tracks[p["track_id"]]
+
+            if best_p_track is not None:
+                # Refresh persistent item memory for 25 frames (~1 sec) to prevent flickering
+                best_p_track.carried_item_memory[item_name] = 25
+
+        # Update carried_items list from persistent memory
+        for t in self.tracks.values():
+            if t.is_person:
+                t.carried_items = list(t.carried_item_memory.keys())
 
     def get_person_tracks(self) -> List[TrackRecord]:
         """Returns list of active person tracks."""

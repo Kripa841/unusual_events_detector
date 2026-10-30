@@ -30,7 +30,11 @@ PERSON_CLASS_ID = 0
 ITEM_CLASS_IDS = [24, 26, 28, 67]
 VEHICLE_CLASS_IDS = [1, 2, 3]
 
-DEFAULT_DETECTION_CONFIDENCE = 0.35
+# Category-Specific Confidence Thresholds (avoids dropping small bags/suitcases)
+DEFAULT_DETECTION_CONFIDENCE = 0.20
+CONF_PERSON = 0.22
+CONF_ITEM = 0.15       # Backpack (24), Handbag (26), Suitcase (28), Cell Phone (67)
+CONF_VEHICLE = 0.20
 RESIZE_WIDTH = 960  # Frame resizing for real-time inference efficiency
 
 # Theft Kinematics & Temporal Analysis Thresholds

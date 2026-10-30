@@ -13,6 +13,9 @@ from config import (
     MODEL_PATH,
     DETECT_CLASSES,
     DEFAULT_DETECTION_CONFIDENCE,
+    CONF_PERSON,
+    CONF_ITEM,
+    CONF_VEHICLE,
     PERSON_CLASS_ID,
     ITEM_CLASS_IDS,
     VEHICLE_CLASS_IDS
@@ -50,12 +53,14 @@ class YOLODetector:
             }, ...
         ]
         """
+        # Use low base threshold (0.15) for YOLO to prevent dropping small bags/suitcases prematurely
+        inference_conf = min(self.conf, 0.15)
         results = self.model.track(
             frame,
             persist=persist,
             tracker="bytetrack.yaml",
             classes=DETECT_CLASSES,
-            conf=self.conf,
+            conf=inference_conf,
             verbose=False
         )
 
@@ -87,6 +92,20 @@ class YOLODetector:
             cx = (x1 + x2) / 2.0
             cy = (y1 + y2) / 2.0
 
+            is_person = (cid == PERSON_CLASS_ID)
+            is_item = (cid in ITEM_CLASS_IDS)
+            is_vehicle = (cid in VEHICLE_CLASS_IDS)
+
+            # Category-aware confidence filtering ensures bags & suitcases are not dropped
+            if is_person and conf_val < CONF_PERSON:
+                continue
+            elif is_item and conf_val < CONF_ITEM:
+                continue
+            elif is_vehicle and conf_val < CONF_VEHICLE:
+                continue
+            elif not (is_person or is_item or is_vehicle) and conf_val < self.conf:
+                continue
+
             detections.append({
                 "track_id": tid,
                 "class_id": cid,
@@ -94,9 +113,9 @@ class YOLODetector:
                 "confidence": conf_val,
                 "bbox": [float(x1), float(y1), float(x2), float(y2)],
                 "center": (float(cx), float(cy)),
-                "is_person": (cid == PERSON_CLASS_ID),
-                "is_item": (cid in ITEM_CLASS_IDS),
-                "is_vehicle": (cid in VEHICLE_CLASS_IDS)
+                "is_person": is_person,
+                "is_item": is_item,
+                "is_vehicle": is_vehicle
             })
 
         return detections
